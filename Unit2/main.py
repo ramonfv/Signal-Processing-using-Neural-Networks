@@ -1,12 +1,14 @@
-from models import Perceptron
-import numpy as np
+from Utils.models import Perceptron
+from Utils.logicGates import andGate, orGate
 
-data = np.array([[1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]])
-labels = np.array([0, 0, 0, 1])
+data, labels = andGate(3)
 
-learning_rate = 0.5
-number_weights = 4
+print(data, labels )
 
-perceptron = Perceptron(data, labels, epochs=10, learning_rate=learning_rate, number_weights=number_weights)
+perceptron_and = Perceptron(data, labels, 0.05, 50)
 
-perceptron.run()
+weights_and = perceptron_and.train_perceptron()
+
+predictions_and = perceptron_and.predict(data, weights_and)
+
+perceptron_and.plot()
