@@ -1,1 +1,4 @@
 signal-processing-NN-env/*
+Project2/.env
+Project2/*.mat
+# Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force comando para permitir ativação de ambiente virtual com .ps1

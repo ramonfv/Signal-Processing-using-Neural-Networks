@@ -13,7 +13,7 @@ class Perceptron():
         self.weights = np.random.rand(data.shape[1] + 1)
     
     def activateFunction(self, x):
-        return np.where(x >= 0, 1, 0)
+        return np.where(x >= 0, 1, -1)
     
     def perceptron(self, x, weights):
         return self.activateFunction(np.dot(x, weights))

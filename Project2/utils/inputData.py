@@ -16,7 +16,6 @@ def get_data(data, frequencyStimulus, electrodes):
     numElectrodes = len(electrodes)
     inputData = np.empty((numElectrodes, numSamples, numFrequencies, numTrials))
     
-    # Mapeando frequências para labels
     frequency_labels = {}
     for i, freq in enumerate(frequencyStimulus):
         if i % 2 == 0:
@@ -31,7 +30,6 @@ def get_data(data, frequencyStimulus, electrodes):
             electrodeData = data[electrode, :, frequency, :]
             inputData[ele, :, freq, :] = electrodeData
 
-            # Definindo as labels
             labels[freq * numTrials:(freq + 1) * numTrials] = frequency_labels[frequency]
 
     return inputData, labels
