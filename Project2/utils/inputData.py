@@ -29,7 +29,6 @@ def get_data(data, frequencyStimulus, electrodes):
         for ele, electrode in enumerate(electrodes):
             electrodeData = data[electrode, :, frequency, :]
             inputData[ele, :, freq, :] = electrodeData
-
             labels[freq * numTrials:(freq + 1) * numTrials] = frequency_labels[frequency]
 
     return inputData, labels
