@@ -20,15 +20,15 @@ inputData, labels = get_data(data, frequencyStimulus, electrode)
 inputDataResampled = np.reshape(inputData, (12,1250))
 
 
-freqD = freqDomain(inputData, 0, 3, 250)
-freq, _ = freqD.variables(inputData, 250)
-print(freq)
+# freqD = freqDomain(inputData, 0, 3, 250)
+# freq, _ = freqD.variables(inputData, 250)
+# print(freq)
 
 
-# classe1 = inputDataResampled[0:6, :]
-# classe2 = inputDataResampled[6:12, :]
+classe1 = inputDataResampled[0:6, :]
+classe2 = inputDataResampled[6:12, :]
 
-# graphs.scatterPlot2Labels(classe1.T, classe2.T, 61, '10Hz', '15Hz')
+graphs.scatterPlot2Labels(classe1.T, classe2.T, 61, '10Hz', '15Hz')
 
 # train_data, valid_data, train_labels, valid_labels = train_test_split(inputDataResampled, labels, test_size=0.67)
 # valid_labels = valid_labels.flatten()
