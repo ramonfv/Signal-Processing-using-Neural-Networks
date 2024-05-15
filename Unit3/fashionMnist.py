@@ -16,8 +16,8 @@ class DatasetLoader:
 
     def load(self):
         transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-        trainset = self.baseName('data', download=False, train=True, transform=transform)
-        testset = self.baseName('data', download=False, train=False, transform=transform)
+        trainset = self.baseName('data', download=True, train=True, transform=transform)
+        testset = self.baseName('data', download=True, train=False, transform=transform)
         self.train_loader = torch.utils.data.DataLoader(trainset, batch_size=self.batch_size, shuffle=True)
         self.test_loader = torch.utils.data.DataLoader(testset, batch_size=self.batch_size, shuffle=False)
         return self.train_loader, self.test_loader
@@ -26,6 +26,22 @@ class DatasetLoader:
         dataiter = iter(self.train_loader)
         input, output = next(dataiter)
         return input[0].size(), len(output.unique())
+    
+
+    
+    def plotImages(self):
+        dataiter = iter(self.train_loader)
+        images, labels = next(dataiter)
+
+        images = images.numpy()
+        images = np.transpose(images, (0, 2, 3, 1))
+
+        fig = plt.figure(figsize=(25, 4))
+        for idx in np.arange(20):
+            ax = fig.add_subplot(2, 10, idx+1, xticks=[], yticks=[])
+            ax.imshow(images[idx])
+            ax.set_title(str(labels[idx].item()))
+        plt.show()
 
 
 
@@ -45,6 +61,6 @@ class DatasetLoader:
 
 
 if __name__ == "__main__":
-    fashion_mnist = DatasetLoader(64, datasets.FashionMNIST)
+    fashion_mnist = DatasetLoader(64, datasets.CIFAR10)
     train_loader, test_loader = fashion_mnist.load()
-    print(fashion_mnist.getLayerSize())
+    fashion_mnist.plotImages()
