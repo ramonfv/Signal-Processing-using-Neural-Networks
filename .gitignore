@@ -3,4 +3,5 @@ Project2/.env
 Project2/*.mat
 *.jar
 Project2/respostas
+NN-env/*
 # Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force comando para permitir ativação de ambiente virtual com .ps1
