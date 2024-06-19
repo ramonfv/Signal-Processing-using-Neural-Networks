@@ -43,7 +43,7 @@ input_features = 1
 hidden_features = 64
 layer_dimension = 3
 output_dimension = 1
-num_epochs = 10
+num_epochs = 4
 learning_rate = 0.001
 batch_size = 32  
 model = LSTMModel(input_features, hidden_features, layer_dimension, output_dimension)
@@ -52,4 +52,24 @@ trainedModel = trainModel(model, xTrain, yTrain, xVal, yVal, num_epochs, learnin
 
 predicted = evaluateModel(trainedModel, xTest, yTest)
 
-plotPredictions(indexdData['T (degC)'].values[-len(predicted):], predicted, title='True vs Predicted Temperature')
+predicted = scaler.inverse_transform(predicted)
+preditedFuture = predicted[xTest.shape[0]-1]
+predicted = predicted[:xTest.shape[0]-1]
+predicted  = predicted[:,0]
+
+print(predicted.shape)
+
+
+train = indexdData[:round(len(df)*0.8)]
+test = indexdData[round(len(df)*0.8)+1:]
+# test['Predicted'] = predicted
+
+print(train['T (degC)'].values.shape)
+print(test['T (degC)'].values.shape)
+
+
+print(indexdData['T (degC)'].values[-len(predicted):].shape)
+print(predicted.shape)
+
+
+# plotPredictions(train, test, title='True vs Predicted Temperature')
