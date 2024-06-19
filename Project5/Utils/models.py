@@ -26,15 +26,15 @@ class LSTMModel(nn.Module):
         self.hiddenFeatures = hiddenFeatures
         self.layerDimension = layerDimension   
         self.lstm = nn.LSTM(inputFeatures, hiddenFeatures, layerDimension, batch_first=True)
-        self.fc1 = nn.Linear(64, 64)
-        self.fc2 = nn.Linear(64, outputDimension)
+        self.fc1 = nn.Linear(hiddenFeatures, outputDimension)
+        # self.fc2 = nn.Linear(64, outputDimension)
 
     def forward(self, x):
         x, (h, c) = self.lstm(x)
         x = x[:, -1, :] 
         x = self.fc1(x)
         x = nn.ReLU()(x)
-        x = self.fc2(x)
+        # x = self.fc2(x)
         return x
     
     
@@ -61,6 +61,7 @@ def prepareSequences(data, seqLength):
         ys.append(y)
     xs, ys = np.array(xs), np.array(ys)
     xs = np.reshape(xs, (xs.shape[0], xs.shape[1], 1))
+    ys = np.reshape(ys, (ys.shape[0], 1))
     return xs, ys
 
 def trainModel(model, xTrain, yTrain, xVal, yVal, numEpochs, learningRate, batchSize):
