@@ -20,21 +20,29 @@ from matplotlib import pyplot as plt
 #         x = self.fc2(x)
 #         return x
     
-class LSTMModel(nn.Module):
-    def __init__(self, inputFeatures, hiddenFeatures, layerDimension, outputDimension):
-        super(LSTMModel, self).__init__()
-        self.hiddenFeatures = hiddenFeatures
-        self.layerDimension = layerDimension   
-        self.lstm = nn.LSTM(inputFeatures, hiddenFeatures, layerDimension, batch_first=True)
-        self.fc1 = nn.Linear(hiddenFeatures, outputDimension)
-        # self.fc2 = nn.Linear(64, outputDimension)
+class LSTMWrapper(nn.Module):
+    def __init__(self, inputFeatures, hiddenFeatures, layerDimension, dropout_p, bidirectional):
+        super(LSTMWrapper, self).__init__()
+        self.lstm = nn.LSTM(inputFeatures, hiddenFeatures, layerDimension, batch_first=True, bidirectional=bidirectional)
+        self.dropout = nn.Dropout(dropout_p)
 
     def forward(self, x):
-        x, (h, c) = self.lstm(x)
+        x, _ = self.lstm(x)
+        x = self.dropout(x) 
+        return x
+
+class LSTMModel(nn.Module):
+    def __init__(self, inputFeatures, hiddenFeatures, layerDimension, outputDimension, dropout_p=0.0, bidirectional=False):
+        super(LSTMModel, self).__init__()
+        self.model = nn.Sequential(
+            LSTMWrapper(inputFeatures, hiddenFeatures, layerDimension, dropout_p, bidirectional),
+            nn.ReLU(),
+            nn.Linear(hiddenFeatures, outputDimension)
+        )
+
+    def forward(self, x):
         x = x[:, -1, :] 
-        x = self.fc1(x)
-        x = nn.ReLU()(x)
-        # x = self.fc2(x)
+        x = self.model(x)
         return x
     
     
@@ -64,16 +72,21 @@ def prepareSequences(data, seqLength):
     ys = np.reshape(ys, (ys.shape[0], 1))
     return xs, ys
 
-def trainModel(model, xTrain, yTrain, xVal, yVal, numEpochs, learningRate, batchSize):
+def trainModel(model, xTrain, yTrain, xVal, yVal, numEpochs, learningRate, batchSize, critery, optimizerAlgorithm, weight_decay=0.0, grad_clip=None):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
     print( 'Device:', device)
     model = model.to(device)  
 
-    criterion = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
-    
+    xTrain = torch.tensor(xTrain, dtype=torch.float32)
+    yTrain = torch.tensor(yTrain, dtype=torch.float32)
+    xVal = torch.tensor(xVal, dtype=torch.float32)
+    yVal = torch.tensor(yVal, dtype=torch.float32)
     xTrain, yTrain = xTrain.to(device), yTrain.to(device) 
     xVal, yVal = xVal.to(device), yVal.to(device) 
+
+
+    criterion = critery 
+    optimizer = optimizerAlgorithm(model.parameters(), lr=learningRate, weight_decay=weight_decay)
 
     trainDataset = torch.utils.data.TensorDataset(xTrain, yTrain)
     trainLoader = torch.utils.data.DataLoader(dataset=trainDataset, batch_size=batchSize, shuffle=False)
@@ -83,29 +96,43 @@ def trainModel(model, xTrain, yTrain, xVal, yVal, numEpochs, learningRate, batch
     
     for epoch in range(numEpochs):
         model.train()
+        trainLoss = 0.0
         for i, (inputs, targets) in enumerate(trainLoader):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
             optimizer.zero_grad()
             loss = criterion(outputs, targets)
             loss.backward()
+            if grad_clip is not None:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
+
             optimizer.step()
-        
+            trainLoss += loss.item()
+
+        trainLoss /= len(trainLoader)
+
         model.eval()
         valLoss = 0.0
         with torch.no_grad():
             for inputs, targets in valLoader:
+                inputs, targets = inputs.to(device), targets.to(device)
                 valOutputs = model(inputs)
                 valLoss += criterion(valOutputs, targets).item()
-        
+
         valLoss /= len(valLoader)
-        
-        if (epoch+1) % 10 == 0:
-            print(f'Epoch [{epoch+1}/{numEpochs}], Loss: {loss.item():.4f}, Val Loss: {valLoss:.4f}')
+
+        print(f'Epoch [{epoch+1}/{numEpochs}], Train Loss: {trainLoss:.4f}, Val Loss: {valLoss:.4f}')
     return model
 
 def evaluateModel(model, xTest, yTest):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') 
+    # print( 'Device:', device)
+    model = model.to(device)  
     model.eval()
+    xTest = torch.tensor(xTest, dtype=torch.float32)
+    yTest = torch.tensor(yTest, dtype=torch.float32)
+    xTest, yTest = xTest.to(device), yTest.to(device)
     testDataset = torch.utils.data.TensorDataset(xTest, yTest)
     testLoader = torch.utils.data.DataLoader(dataset=testDataset, batch_size=64, shuffle=False)
     criterion = nn.MSELoss()
@@ -113,6 +140,7 @@ def evaluateModel(model, xTest, yTest):
     predictions = []
     with torch.no_grad():
         for inputs, targets in testLoader:
+            inputs, targets = inputs.to(device), targets.to(device)
             testOutputs = model(inputs)
             testLoss += criterion(testOutputs, targets).item()
             predictions.append(testOutputs)
