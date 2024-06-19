@@ -60,6 +60,7 @@ trainedModel = trainModel(model, xTrain, yTrain, xVal, yVal, num_epochs, learnin
 
 predicted = evaluateModel(trainedModel, xTest, yTest)
 
+<<<<<<< HEAD
 print(predicted.shape)
 
 predicted = scaler.inverse_transform(predicted)
@@ -67,3 +68,26 @@ predicted = predicted.flatten()
 predicted = predicted.reshape(-1, 1)
 
 plotPredictions(indexdData['T (degC)'].values[-len(predicted):], predicted, title='True vs Predicted Temperature')
+=======
+predicted = scaler.inverse_transform(predicted)
+preditedFuture = predicted[xTest.shape[0]-1]
+predicted = predicted[:xTest.shape[0]-1]
+predicted  = predicted[:,0]
+
+print(predicted.shape)
+
+
+train = indexdData[:round(len(df)*0.8)]
+test = indexdData[round(len(df)*0.8)+1:]
+# test['Predicted'] = predicted
+
+print(train['T (degC)'].values.shape)
+print(test['T (degC)'].values.shape)
+
+
+print(indexdData['T (degC)'].values[-len(predicted):].shape)
+print(predicted.shape)
+
+
+# plotPredictions(train, test, title='True vs Predicted Temperature')
+>>>>>>> d8d4ae55bfbc814575a95f6403ca73a8f49f359d
